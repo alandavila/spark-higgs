@@ -185,3 +185,18 @@ Click on the Create Security Group button and add two rules one for SSH and one 
 
 ![create security group](resources/SecurityGroupButton.PNG)
 ![ports](resources/SecurityGroupPorts.PNG)
+
+
+## Step four: Connect to Zeppelin and run the Analysis
+
+Now you can connect to the cluster by using your master node's DNS (get it form the cluster summary page) by adding a colon and the port 8890. Also, you can pretty much copy the code from your local jupyter notebook onto the Zeppelin notebook cells and run it cell by cell or all together. The only change you have to make is to get your data from s3 instead of a local path in your filesystem. In the example shown I analyzed the 2M simulations that I could not in my own PC.
+
+![zeppelin one](resources/zeppelin2MOne.PNG)
+
+Finally, here are the errors on the test data for the GBT and RF algorithms. Note that there is much work to do (get AUC metric instead of error, hyper parameter tuning, analyze the full 11 million collisions, check for over-fitting, etc.) but this tutorial serves the purpose to get you up and running on the an AWS cluster.
+
+![zeppelin one](resources/zeppelin2MTwo.PNG)
+
+## Step five: TERMINATE YOUR Cluster
+
+... unless you want to keep paying Amazon for a cluster you are not using. Click on the Terminate button after selecting your cluster.
