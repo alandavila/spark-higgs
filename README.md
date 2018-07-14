@@ -36,6 +36,8 @@ df..headhead((22))
 (training, test) = df.randomSplit([0.7, 0.3])
 training.count(), test.count()
 ```
+(13998, 6002)
+
 We need to convert our dataframe data to have a 'label' columns and 'features' columns made of DenseVector objects. That way we can map the (float, DenseVector) objects into LabeledPoint objects which are required
 for the [MLlib](https://spark.apache.org/mllib/) **Gradient Boosted Trees** and **Random Forest** classifiers.
 
@@ -75,15 +77,14 @@ LabeledPoint(0.0, [0.276892751455307,1.1248798370361328,-0.6266821026802063,1.12
 ```python
 import time
 train_start = time.time()
-GBTmodel = GradientBoostedTrees.trainClassifier(labelPoint_train,
-                                             categoricalFeaturesInfo={}, numIterations=30)
+GBTmodel = GradientBoostedTrees.trainClassifier(labelPoint_train,categoricalFeaturesInfo={}, numIterations=30)
 train_end = time.time()
 print(f'Time elapsed training model: {train_end - train_start} seconds')
 ```
 Time elapsed training model: 20.253782272338867 seconds
 
 
-Evaluate GBT GBT
+Evaluate GBT
 ```python
 predictions = GBTmodel.predict(test_dense.rdd.map(lambda x: x.features.values))
 labelsAndPredictions = test_dense.rdd.map(lambda lp: lp.label).zip(predictions)
@@ -123,7 +124,7 @@ print('Test Error = ' + str(testErr))
 Test Error = 0.344218593802066
 
 
-#Results for further analysis¶
+# Results for further analysis
 
 * 20k simulations: (train/test split 0.7/0.3)
 
@@ -140,3 +141,47 @@ Test Error = 0.344218593802066
 * 2M simulations: (train/test split 0.7/0.3)
 
   **'Out of memory errors in spark logs' --> onto the AWS cluster!**
+
+# Higgs boson classification on AWS using Zeppelin and SparkSession
+
+## Step one: Load your data to s3
+
+![s3data](resources/s3data.PNG)
+
+## Step two: Choose cluster configuration and create it.
+
+Go to your AWS dashboard and search for EMR. Then click in Create Cluster to make your cluster selection.
+![EMR cluster](resources/CreateEMRCluster.PNG)
+
+I had issues running my analysis on 20k simulation when I selected a 3 node cluster (one master, two slaves) of the m1.medium instance. I tried increasing the number of slaves to 4 without success. I only manages to run my script when I created a new cluster using m4.xlarge instances that have more RAM
+
+![out of memory](resources/OutofMemory.PNG)
+
+AWS has the option to launch a cluster with Spark, Hadoop and Zeppelin pre-installed. Note that the cluster will take some time (~minutes) to launch.
+
+You can crate your cluster using the following configutaion.
+
+![cluster configuration](resources/ClusterConfiguration.PNG)
+
+
+This is the Final cluster summary.
+
+![cluster summary](resources/ClusterSummary.PNG)
+
+The master node and each slave now have 16 GB of memory
+
+![cluster hw](resources/ClusterHW.PNG)
+
+The increased memory comes at a price
+
+![cluster price](resources/ClusterPrice.PNG)
+
+
+## Step three: Set security groups
+
+The next step is to set some security groups that will allow us to access the master node via Zeppelin in our browser. This is the easiest way to access the cluster for fast prototyping.
+
+Click on the Create Security Group button and add two rules one for SSH and one for TCP with port **8890**. We will use that port later to connect to the master node via Zeppelin.
+
+![create security group](resources/SecurityGroupButton.PNG)
+![ports](resources/SecurityGroupPorts.PNG)
